@@ -1,0 +1,26 @@
+#
+# Project gitignore
+#
+
+# python
+__pycache__/
+
+# data
+/data
+
+# jupyter
+.ipynb_checkpoints/
+
+#IDEA
+.idea
+
+# Environments
+.env
+.venv
+/env
+/venv
+
+# System
+.DS_store
+._.DS_store
+
