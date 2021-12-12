@@ -72,7 +72,6 @@ if __name__ == "__main__":
                 loss.backward()
                 optimizer.step()
                 progress.set_postfix(loss=loss_item)
-                break
 
         training_loss.append(running_loss / len(train_loader))
 
@@ -86,7 +85,6 @@ if __name__ == "__main__":
                 loss_item = loss.item()
                 val_running_loss += loss_item
                 validation_progress.set_postfix(loss=loss_item)
-                break
 
         validation_loss.append(val_running_loss / len(test_loader))
 
