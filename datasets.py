@@ -2,6 +2,8 @@ import cv2
 import os
 import glob
 import numpy as np
+import pandas as pd
+import pickle
 import random
 import torch
 import torchvision
@@ -11,29 +13,22 @@ from torchvision import transforms
 
 from utils import get_random_transformation
 
-dataset_path = "/Users/ondra/dev/personal/siamese-registration/data/frame_sequences"
-
 
 class RandomTransformationDataset(Dataset):
-    def __init__(self, transforms=None, path=dataset_path):
+    def __init__(self, transforms=None, path=None, path_prefix=None):
         self.path = path
-
+        self.path_prefix = path_prefix
         self.transforms = transforms
-
-        self.folder_paths = glob.glob(os.path.join(self.path, '*'))
-        self.id_list = []
-        self.image_list = []
-
-        for folder in self.folder_paths:
-            images = glob.glob(folder + '/*jpg')
-            self.id_list.append(os.path.basename(folder))
-            self.image_list.extend(images)
+        self.dataframe = pd.read_pickle(self.path)
 
     def __len__(self):
-        return len(self.image_list)
+        return len(self.dataframe)
 
     def __getitem__(self, index):
-        image = cv2.imread(self.image_list[index])
+        if self.path_prefix:
+            image = cv2.imread(os.path.join(self.path_prefix, self.dataframe.iloc[index].relative_path))
+        else:
+            image = cv2.imread(self.dataframe.iloc[index].relative_path)
         trans_image, trans_image_crop, image_crop, params = get_random_transformation(image)
         if self.transforms:
             image_crop = self.transforms(image_crop)
@@ -48,10 +43,10 @@ if __name__ == '__main__':
             transforms.Grayscale(),
             transforms.ToTensor(),
         ]),
-        path="/Users/ondra/dev/personal/siamese-registration/data/frame_sequences"
+        path="/Users/ondra/dev/personal/retinal-registration/data/train.pkl"
     )
 
-    loader = DataLoader(dataset, batch_size=1, num_workers=0, shuffle=True)
+    loader = DataLoader(dataset, batch_size=1, num_workers=0, shuffle=False)
     image_crop, trans_image_crop, params = next(iter(loader))
 
     print(image_crop.shape)
