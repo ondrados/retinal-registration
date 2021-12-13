@@ -53,13 +53,12 @@ if __name__ == "__main__":
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
     # optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-    running_loss = 0.0
-    val_running_loss = 0.0
     training_loss = []
     validation_loss = []
 
     for epoch in range(0, 10):
         model.train()
+        running_loss = 0.0
         with tqdm(train_loader, unit="batch") as progress:
             for img0, img1, params in progress:
                 progress.set_description(f"Epoch {epoch} - train")
@@ -76,6 +75,7 @@ if __name__ == "__main__":
         training_loss.append(running_loss / len(train_loader))
 
         model.eval()
+        val_running_loss = 0.0
         with tqdm(test_loader, unit="batch") as validation_progress:
             for img0, img1, params in validation_progress:
                 validation_progress.set_description(f"Epoch {epoch} - validation")
