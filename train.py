@@ -25,8 +25,6 @@ if __name__ == "__main__":
 
     train_dataset = RandomTransformationDataset(
         transforms=transforms.Compose([
-            transforms.ToPILImage(),
-            transforms.Grayscale(),
             transforms.ToTensor(),
         ]),
         path=os.path.join(path, "train.pkl")
@@ -36,8 +34,6 @@ if __name__ == "__main__":
 
     test_dataset = RandomTransformationDataset(
         transforms=transforms.Compose([
-            transforms.ToPILImage(),
-            transforms.Grayscale(),
             transforms.ToTensor(),
         ]),
         path=os.path.join(path, "test.pkl")

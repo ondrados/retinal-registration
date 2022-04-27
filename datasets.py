@@ -26,9 +26,15 @@ class RandomTransformationDataset(Dataset):
 
     def __getitem__(self, index):
         if self.path_prefix:
-            image = cv2.imread(os.path.join(self.path_prefix, self.dataframe.iloc[index].relative_path))
+            image = cv2.imread(
+                os.path.join(self.path_prefix, self.dataframe.iloc[index].relative_path),
+                cv2.IMREAD_GRAYSCALE
+            )
         else:
-            image = cv2.imread(self.dataframe.iloc[index].relative_path)
+            image = cv2.imread(
+                self.dataframe.iloc[index].relative_path,
+                cv2.IMREAD_GRAYSCALE
+            )
         trans_image, trans_image_crop, image_crop, params = get_random_transformation(image)
         if self.transforms:
             image_crop = self.transforms(image_crop)
@@ -39,8 +45,6 @@ class RandomTransformationDataset(Dataset):
 if __name__ == '__main__':
     dataset = RandomTransformationDataset(
         transforms=transforms.Compose([
-            transforms.ToPILImage(),
-            transforms.Grayscale(),
             transforms.ToTensor(),
         ]),
         path="/Users/ondra/dev/personal/retinal-registration/data/train.pkl"
