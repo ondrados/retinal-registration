@@ -42,6 +42,41 @@ class RandomTransformationDataset(Dataset):
         return image_crop, trans_image_crop, torch.FloatTensor(params)
 
 
+class FolderFramesDataset(Dataset):
+    def __init__(self, transforms=None, path=None):
+        self.path = path
+        self.transforms = transforms
+        self.folder_paths = glob.glob(os.path.join(self.path, '*'))
+        self.id_list = []
+        self.image_list = []
+
+        for folder in self.folder_paths:
+            images = glob.glob(folder + '/*jpg')
+            self.id_list.append(os.path.basename(folder))
+            self.image_list.extend(images)
+            break
+
+    def __len__(self):
+        return len(self.image_list) - 1
+
+    def __getitem__(self, index):
+        image = cv2.imread(self.image_list[index], cv2.IMREAD_GRAYSCALE)
+        image2 = cv2.imread(self.image_list[index+1], cv2.IMREAD_GRAYSCALE)
+
+        h = 500
+        w = int(h * 1.5)
+        center = (image.shape[1] // 2, image.shape[0] // 2)
+
+        image_crop = image[center[1] - h // 2:center[1] + h // 2, center[0] - w // 2:center[0] + w // 2]
+        image2_crop = image2[center[1] - h // 2:center[1] + h // 2, center[0] - w // 2:center[0] + w // 2]
+
+        if self.transforms:
+            image_crop = self.transforms(image_crop)
+            image2_crop = self.transforms(image2_crop)
+
+        return image_crop, image2_crop
+
+
 if __name__ == '__main__':
     dataset = RandomTransformationDataset(
         transforms=transforms.Compose([
