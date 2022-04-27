@@ -47,7 +47,7 @@ def get_transformation_matrix(center, tx, ty, sx, sy, shx, shy, q):
 
 
 def get_random_transformation(image):
-    rows, cols, ch = image.shape
+    rows, cols = image.shape
     center = (image.shape[1] // 2, image.shape[0] // 2)
     tx = np.random.uniform(-50, 50, 1)[0]
     ty = np.random.uniform(-50, 50, 1)[0]
