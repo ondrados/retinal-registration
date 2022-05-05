@@ -22,28 +22,38 @@ class SiameseResNet(nn.Module):
         return out
 
 
+blocks_sizes = [32, 64, 128, 256]
+
+
 def siamese_resnet18(in_channels, n_classes):
-    return SiameseResNet(in_channels, n_classes, block=ResNetBasicBlock, deepths=[2, 2, 2, 2])
+    return SiameseResNet(
+        in_channels, n_classes, block=ResNetBasicBlock, deepths=[2, 2, 2, 2], blocks_sizes=blocks_sizes)
 
 
 def siamese_resnet34(in_channels, n_classes):
-    return SiameseResNet(in_channels, n_classes, block=ResNetBasicBlock, deepths=[3, 4, 6, 3])
+    return SiameseResNet(
+        in_channels, n_classes, block=ResNetBasicBlock, deepths=[3, 4, 6, 3], blocks_sizes=blocks_sizes)
 
 
 def siamese_resnet50(in_channels, n_classes):
-    return SiameseResNet(in_channels, n_classes, block=ResNetBottleNeckBlock, deepths=[3, 4, 6, 3])
+    return SiameseResNet(
+        in_channels, n_classes, block=ResNetBottleNeckBlock, deepths=[3, 4, 6, 3], blocks_sizes=blocks_sizes
+    )
 
 
 def siamese_resnet101(in_channels, n_classes):
-    return SiameseResNet(in_channels, n_classes, block=ResNetBottleNeckBlock, deepths=[3, 4, 23, 3])
+    return SiameseResNet(
+        in_channels, n_classes, block=ResNetBottleNeckBlock, deepths=[3, 4, 23, 3], blocks_sizes=blocks_sizes
+    )
 
 
 def siamese_resnet152(in_channels, n_classes):
-    return SiameseResNet(in_channels, n_classes, block=ResNetBottleNeckBlock, deepths=[3, 8, 36, 3])
+    return SiameseResNet(
+        in_channels, n_classes, block=ResNetBottleNeckBlock, deepths=[3, 8, 36, 3], blocks_sizes=blocks_sizes)
 
 
 if __name__ == '__main__':
     from torchsummary import summary
 
-    model = siamese_resnet18(1, 7)
+    model = siamese_resnet50(1, 7)
     summary(model.cpu(), [(1, 500, 750), (1, 500, 750)])
