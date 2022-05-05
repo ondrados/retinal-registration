@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import torch
 from matplotlib import pyplot as plt
 
 
@@ -76,3 +77,7 @@ def get_random_transformation(image):
     trans_image_crop = trans_image[center[1] - h // 2:center[1] + h // 2, center[0] - w // 2:center[0] + w // 2]
 
     return trans_image, trans_image_crop, image_crop, [tx, ty, sx, sy, shx, shy, q]
+
+
+def mape_loss(output, target, c=0.0001):
+    return torch.mean(torch.abs((target - output) / (target + c)))
