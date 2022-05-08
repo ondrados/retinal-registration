@@ -79,5 +79,24 @@ def get_random_transformation(image):
     return trans_image, trans_image_crop, image_crop, [tx, ty, sx, sy, shx, shy, q]
 
 
+def get_random_translation(image):
+    rows, cols = image.shape
+    center = (image.shape[1] // 2, image.shape[0] // 2)
+
+    tx = np.random.uniform(-50, 50, 1)[0]
+    ty = np.random.uniform(-50, 50, 1)[0]
+
+    matrix = trans_mat(tx, ty)
+    matrix_opencv = np.float32(matrix.flatten()[:6].reshape(2, 3))
+    trans_image = cv2.warpAffine(image, matrix_opencv, (cols, rows))
+
+    h = 500
+    w = int(h * 1.5)
+    image_crop = image[center[1] - h // 2:center[1] + h // 2, center[0] - w // 2:center[0] + w // 2]
+    trans_image_crop = trans_image[center[1] - h // 2:center[1] + h // 2, center[0] - w // 2:center[0] + w // 2]
+
+    return trans_image, trans_image_crop, image_crop, [tx, ty]
+
+
 def mape_loss(output, target, c=0.0001):
     return torch.mean(torch.abs((target - output) / (target + c)))

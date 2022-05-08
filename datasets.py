@@ -11,15 +11,16 @@ from matplotlib import pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
-from utils import get_random_transformation
+from utils import get_random_transformation, get_random_translation
 
 
 class RandomTransformationDataset(Dataset):
-    def __init__(self, transforms=None, path=None, path_prefix=None):
+    def __init__(self, transforms=None, path=None, path_prefix=None, tr_only=False):
         self.path = path
         self.path_prefix = path_prefix
         self.transforms = transforms
         self.dataframe = pd.read_pickle(self.path)
+        self.tr_only = tr_only
 
     def __len__(self):
         return len(self.dataframe)
@@ -35,7 +36,10 @@ class RandomTransformationDataset(Dataset):
                 self.dataframe.iloc[index].relative_path,
                 cv2.IMREAD_GRAYSCALE
             )
-        trans_image, trans_image_crop, image_crop, params = get_random_transformation(image)
+        if self.tr_only:
+            trans_image, trans_image_crop, image_crop, params = get_random_translation(image)
+        else:
+            trans_image, trans_image_crop, image_crop, params = get_random_transformation(image)
         if self.transforms:
             image_crop = self.transforms(image_crop)
             trans_image_crop = self.transforms(trans_image_crop)
@@ -82,7 +86,8 @@ if __name__ == '__main__':
         transforms=transforms.Compose([
             transforms.ToTensor(),
         ]),
-        path="/Users/ondra/dev/personal/retinal-registration/data/train.pkl"
+        path="/Users/ondra/dev/personal/retinal-registration/data/train.pkl",
+        tr_only=True
     )
 
     loader = DataLoader(dataset, batch_size=1, num_workers=0, shuffle=False)
