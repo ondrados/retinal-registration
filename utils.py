@@ -100,3 +100,7 @@ def get_random_translation(image):
 
 def mape_loss(output, target, c=0.0001):
     return torch.mean(torch.abs((target - output) / (target + c)))
+
+
+def weighted_mse_loss(input, target, weight):
+    return (weight * (input - target) ** 2).mean()
