@@ -1,2 +1,1 @@
-# siamese-registration
-
+# Registration of retinal images using deep learning

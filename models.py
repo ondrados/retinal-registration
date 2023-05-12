@@ -93,9 +93,9 @@ class InitialSiameseResNet(nn.Module):
         self.encoder = ResNetEncoder(in_channels, *args, **kwargs)
 
         if self.matching_type == 'concatenation':
-            self.fc = ResnetDecoder(self.encoder.blocks[-1].blocks[-1].expanded_channels * 2, n_classes)
+            self.decoder = ResnetDecoder(self.encoder.blocks[-1].blocks[-1].expanded_channels * 2, n_classes)
         elif self.matching_type == 'subtraction':
-            self.fc = ResnetDecoder(self.encoder.blocks[-1].blocks[-1].expanded_channels, n_classes)
+            self.decoder = ResnetDecoder(self.encoder.blocks[-1].blocks[-1].expanded_channels, n_classes)
         elif self.matching_type == 'correlation':
             self.correlation = CorrelationLayer()
             self.fc = ResnetDecoder(self.correlation.out_size, n_classes)
@@ -110,8 +110,9 @@ class InitialSiameseResNet(nn.Module):
             match = torch.subtract(resnet_out1, resnet_out2)
         elif self.matching_type == 'correlation':
             match = self.correlation(resnet_out1, resnet_out2)
+            return self.fc(match)
 
-        out = self.fc(match)
+        out = self.decoder(match)
 
         return out
 
@@ -166,8 +167,8 @@ if __name__ == '__main__':
 
     # model = initial_siamese_resnet18(1, 7, "concatenation")
     # model = initial_siamese_resnet18(1, 7, "subtraction")
-    # model = initial_siamese_resnet18(1, 7, "correlation")
+    model = initial_siamese_resnet18(1, 7, "correlation")
     # model = siamese_resnet18(1, 7, "concatenation", channels=[1024, 128, 64])
     # model = siamese_resnet18(1, 7, "subtraction", channels=[512, 128, 64])
-    model = siamese_resnet18(1, 7, "correlation", channels=[384, 128, 64])
+    # model = siamese_resnet18(1, 7, "correlation", channels=[384, 128, 64])
     summary(model.cpu(), [(1, 500, 750), (1, 500, 750)])
