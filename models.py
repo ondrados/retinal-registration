@@ -15,14 +15,7 @@ def featureL2Norm(feature):
 class CorrelationLayer(nn.Module):
     # https://github.com/limacv/CorrelationLayer/blob/master/correlation_torch.py
     def __init__(self, pad_size=4, kernel_size=1, max_displacement=4, stride1=1, stride2=1, corr_multiply=1):
-        assert kernel_size == 1, "kernel_size other than 1 is not implemented"
-        assert pad_size == max_displacement
-        assert stride1 == stride2 == 1
         super().__init__()
-        # self.pad_size = pad_size
-        # self.kernel_size = kernel_size
-        # self.stride1 = stride1
-        # self.stride2 = stride2
         self.max_hdisp = max_displacement
         self.padlayer = nn.ConstantPad2d(pad_size, 0)
         self.out_size = (2 * self.max_hdisp + 1) ** 2
@@ -40,32 +33,22 @@ class CorrelationLayer(nn.Module):
 
 
 class FeatureCorrelation(torch.nn.Module):
-    def __init__(self, shape='3D', normalization=True, matching_type='correlation'):
+    def __init__(self, normalization=True, matching_type='correlation'):
         super(FeatureCorrelation, self).__init__()
         self.normalization = normalization
         self.matching_type = matching_type
-        self.shape = shape
         self.ReLU = nn.ReLU()
 
     def forward(self, feature_A, feature_B):
         b, c, h, w = feature_A.size()
         if self.matching_type == 'correlation':
-            if self.shape == '3D':
-                # reshape features for matrix multiplication
-                feature_A = feature_A.transpose(2, 3).contiguous().view(b, c, h * w)
-                feature_B = feature_B.view(b, c, h * w).transpose(1, 2)
-                # perform matrix mult.
-                feature_mul = torch.bmm(feature_B, feature_A)
-                # indexed [batch,idx_A=row_A+h*col_A,row_B,col_B]
-                correlation_tensor = feature_mul.view(b, h, w, h * w).transpose(2, 3).transpose(1, 2)
-            elif self.shape == '4D':
-                # reshape features for matrix multiplication
-                feature_A = feature_A.view(b, c, h * w).transpose(1, 2)  # size [b,c,h*w]
-                feature_B = feature_B.view(b, c, h * w)  # size [b,c,h*w]
-                # perform matrix mult.
-                feature_mul = torch.bmm(feature_A, feature_B)
-                # indexed [batch,row_A,col_A,row_B,col_B]
-                correlation_tensor = feature_mul.view(b, h, w, h, w).unsqueeze(1)
+            # reshape features for matrix multiplication
+            feature_A = feature_A.transpose(2, 3).contiguous().view(b, c, h * w)
+            feature_B = feature_B.view(b, c, h * w).transpose(1, 2)
+            # perform matrix mult.
+            feature_mul = torch.bmm(feature_B, feature_A)
+            # indexed [batch,idx_A=row_A+h*col_A,row_B,col_B]
+            correlation_tensor = feature_mul.view(b, h, w, h * w).transpose(2, 3).transpose(1, 2)
 
             if self.normalization:
                 correlation_tensor = featureL2Norm(self.ReLU(correlation_tensor))
