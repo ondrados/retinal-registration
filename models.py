@@ -102,13 +102,45 @@ class FeatureRegression(nn.Module):
         return x
 
 
+class InitialSiameseResNet(nn.Module):
+
+    def __init__(self, in_channels, n_classes, matching_type='concatenation', *args, **kwargs):
+        super().__init__()
+        self.matching_type = matching_type
+        self.encoder = ResNetEncoder(in_channels, *args, **kwargs)
+
+        if self.matching_type == 'concatenation':
+            self.fc = ResnetDecoder(self.encoder.blocks[-1].blocks[-1].expanded_channels * 2, n_classes)
+        elif self.matching_type == 'subtraction':
+            self.fc = ResnetDecoder(self.encoder.blocks[-1].blocks[-1].expanded_channels, n_classes)
+        elif self.matching_type == 'correlation':
+            self.correlation = CorrelationLayer()
+            self.fc = ResnetDecoder(self.correlation.out_size, n_classes)
+
+    def forward(self, input1, input2):
+        resnet_out1 = self.encoder(input1)
+        resnet_out2 = self.encoder(input2)
+
+        if self.matching_type == 'concatenation':
+            match = torch.cat((resnet_out1, resnet_out2), 1)
+        elif self.matching_type == 'subtraction':
+            match = torch.subtract(resnet_out1, resnet_out2, )
+            # match = resnet_out1.sub(resnet_out2)
+        elif self.matching_type == 'correlation':
+            match = self.correlation(resnet_out1, resnet_out2)
+
+        out = self.fc(match)
+
+        return out
+
+
 class SiameseResNet(nn.Module):
 
-    def __init__(self, in_channels, n_classes, matching_type, *args, **kwargs):
+    def __init__(self, in_channels, n_classes, matching_type, channels, *args, **kwargs):
         super().__init__()
         self.encoder = ResNetEncoder(in_channels, *args, **kwargs)
         self.correlation = FeatureCorrelation(matching_type=matching_type)
-        self.regression = FeatureRegression(output_dim=n_classes)
+        self.regression = FeatureRegression(output_dim=n_classes, channels=channels)
 
     def forward(self, input1, input2):
         resnet_out1 = self.encoder(input1)
@@ -124,8 +156,14 @@ class SiameseResNet(nn.Module):
 blocks_sizes = [64, 128, 256, 512]
 
 
-def siamese_resnet18(in_channels, n_classes, matching_type):
+def siamese_resnet18(in_channels, n_classes, matching_type, channels):
     return SiameseResNet(
+        in_channels, n_classes, matching_type, channels, block=ResNetBasicBlock, deepths=[2, 2, 2, 2],
+        blocks_sizes=blocks_sizes)
+
+
+def initial_siamese_resnet18(in_channels, n_classes, matching_type):
+    return InitialSiameseResNet(
         in_channels, n_classes, matching_type, block=ResNetBasicBlock, deepths=[2, 2, 2, 2], blocks_sizes=blocks_sizes)
 
 
@@ -136,23 +174,18 @@ def siamese_resnet34(in_channels, n_classes, matching_type):
 
 def siamese_resnet50(in_channels, n_classes, matching_type):
     return SiameseResNet(
-        in_channels, n_classes, matching_type, block=ResNetBottleNeckBlock, deepths=[3, 4, 6, 3], blocks_sizes=blocks_sizes
+        in_channels, n_classes, matching_type, block=ResNetBottleNeckBlock, deepths=[3, 4, 6, 3],
+        blocks_sizes=blocks_sizes
     )
-
-
-def siamese_resnet101(in_channels, n_classes, matching_type):
-    return SiameseResNet(
-        in_channels, n_classes, matching_type, block=ResNetBottleNeckBlock, deepths=[3, 4, 23, 3], blocks_sizes=blocks_sizes
-    )
-
-
-def siamese_resnet152(in_channels, n_classes, matching_type):
-    return SiameseResNet(
-        in_channels, n_classes, matching_type, block=ResNetBottleNeckBlock, deepths=[3, 8, 36, 3], blocks_sizes=blocks_sizes)
 
 
 if __name__ == '__main__':
     from torchsummary import summary
 
-    model = siamese_resnet18(1, 7, "correlation")
+    # model = initial_siamese_resnet18(1, 7, "concatenation")
+    # model = initial_siamese_resnet18(1, 7, "subtraction")
+    # model = initial_siamese_resnet18(1, 7, "correlation")
+    # model = siamese_resnet18(1, 7, "concatenation", channels=[1024, 128, 64])
+    # model = siamese_resnet18(1, 7, "subtraction", channels=[512, 128, 64])
+    model = siamese_resnet18(1, 7, "correlation", channels=[384, 128, 64])
     summary(model.cpu(), [(1, 500, 750), (1, 500, 750)])
