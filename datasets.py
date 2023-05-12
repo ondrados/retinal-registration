@@ -86,7 +86,7 @@ if __name__ == '__main__':
         transforms=transforms.Compose([
             transforms.ToTensor(),
         ]),
-        path="/Users/ondra/dev/personal/retinal-registration/data/train.pkl",
+        path="/Users/ondrados/dev/school/retinal-registration/data/train.pkl",
         tr_only=True
     )
 

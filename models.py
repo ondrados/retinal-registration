@@ -124,8 +124,7 @@ class InitialSiameseResNet(nn.Module):
         if self.matching_type == 'concatenation':
             match = torch.cat((resnet_out1, resnet_out2), 1)
         elif self.matching_type == 'subtraction':
-            match = torch.subtract(resnet_out1, resnet_out2, )
-            # match = resnet_out1.sub(resnet_out2)
+            match = torch.subtract(resnet_out1, resnet_out2)
         elif self.matching_type == 'correlation':
             match = self.correlation(resnet_out1, resnet_out2)
 
